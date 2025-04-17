@@ -1,216 +1,851 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.3",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
+    "title": "Memoram API v1",
+    "description": "API for interacting with the Memoram platform, managing access, memories, and tags.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Memoram Support",
+      "url": "https://memoram.app",
+      "email": "support@memoram.app"
+    }
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
+      "url": "https://api.memoram.app/api/v1",
+      "description": "Production Server"
     }
   ],
-  "security": [
+  "tags": [
     {
-      "bearerAuth": []
+      "name": "Access Management",
+      "description": "Endpoints for obtaining authentication tokens and managing access requests to user memories."
+    },
+    {
+      "name": "Memory Management",
+      "description": "Endpoints for creating, retrieving, updating, and deleting user memory blobs."
+    },
+    {
+      "name": "Memory Tag Management",
+      "description": "Endpoints for retrieving memory tags."
     }
   ],
   "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
+    "/auth/token": {
+      "post": {
+        "tags": ["Access Management"],
+        "summary": "Create JWT Token",
+        "description": "Exchange a developer API key for a short-lived JWT bearer token required for subsequent API calls.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AuthTokenRequest"
+              },
+              "example": {
+                "api_key": "mem_71c8d4fd816f195801803cd4c801735dfbafaaba72a88eea",
+                "expires_in": 3600
+              }
             }
           }
-        ],
+        },
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "Successfully created JWT token.",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
+                  "$ref": "#/components/schemas/AuthTokenResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Unexpected error",
+            "description": "Bad Request - Invalid API key or parameters."
+          },
+          "401": {
+            "description": "Unauthorized - Invalid API key."
+          }
+        }
+      }
+    },
+    "/access-requests": {
+      "post": {
+        "tags": ["Access Management"],
+        "summary": "Create Access Request",
+        "description": "Initiate a request for access to a specific user's memory store using their unique Memory Key. The user must approve this request via the Memoram dashboard.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAccessRequest"
+              },
+              "example": {
+                "memoryKey": "user_provided_mem_key",
+                "reason": "DemoBot would like to access your ai memories"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Access request created successfully. Status will be 'pending'.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/AccessRequest"
                 }
               }
             }
+          },
+          "400": {
+            "description": "Bad Request - Invalid memoryKey or reason."
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or expired JWT."
+          },
+          "404": {
+            "description": "Not Found - Memory Key does not exist."
+          }
+        }
+      },
+      "get": {
+        "tags": ["Access Management"],
+        "summary": "Get Access Requests",
+        "description": "Retrieve a list of all access requests initiated by the authenticated developer account.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of access requests.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequestListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or expired JWT."
+          }
+        }
+      }
+    },
+    "/access-requests/{requestId}": {
+      "get": {
+        "tags": ["Access Management"],
+        "summary": "Get Access Request by ID",
+        "description": "Retrieve the details and status of a specific access request using its unique ID.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "description": "The unique ID of the access request (e.g., cm8r8ny2i001mm24853tqfd62).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Details of the access request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessRequest"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or expired JWT."
+          },
+          "403": {
+             "description": "Forbidden - Request does not belong to the authenticated developer."
+          },
+          "404": {
+            "description": "Not Found - Access request with the specified ID not found."
+          }
+        }
+      }
+    },
+    "/access-requests/{requestId}/credentials": {
+      "get": {
+        "tags": ["Access Management"],
+        "summary": "Get User Encryption Key",
+        "description": "Retrieve the user's Memory Key and the necessary Encryption Key for accessing their memory blobs. This endpoint ONLY works for access requests with an 'approved' status.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "description": "The unique ID of an APPROVED access request.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved user credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessCredentialsResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or expired JWT."
+          },
+          "403": {
+            "description": "Forbidden - Access request is not approved or does not belong to the authenticated developer."
+          },
+          "404": {
+            "description": "Not Found - Access request with the specified ID not found."
+          }
+        }
+      }
+    },
+    "/memory-blobs": {
+      "get": {
+        "tags": ["Memory Management"],
+        "summary": "Get Memories",
+        "description": "Retrieve a list of memory blobs for a specific user. Requires the user's ID obtained from an approved access request.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "description": "The unique ID of the user whose memories are being requested.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "Maximum number of memory blobs to return.",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "Cursor for pagination, obtained from a previous response.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "tags",
+            "in": "query",
+            "required": false,
+            "description": "Comma-separated list of tag names to filter by.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "searchQuery",
+            "in": "query",
+            "required": false,
+            "description": "Search term to filter memories by (searches title, summary, and content).",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of memory blobs.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryBlobListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Missing or invalid user_id."
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or expired JWT."
+          },
+          "403": {
+            "description": "Forbidden - The authenticated developer does not have approved access for this user_id."
           }
         }
       },
       "post": {
-        "description": "Creates a new plant in the store",
+        "tags": ["Memory Management"],
+        "summary": "Create Memory",
+        "description": "Create a new memory blob for a user. Requires the user's ID and Memory Key obtained from an approved access request. Content should ideally be encrypted client-side before sending, or the API/SDK can handle encryption.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
         "requestBody": {
-          "description": "Plant to add to the store",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "$ref": "#/components/schemas/CreateMemoryRequest"
               }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
-          "200": {
-            "description": "plant response",
+          "201": {
+            "description": "Memory blob created successfully.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Plant"
+                  "$ref": "#/components/schemas/MemoryBlobResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
+            "description": "Bad Request - Missing required fields or invalid data."
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or expired JWT."
+          },
+          "403": {
+            "description": "Forbidden - The authenticated developer does not have approved access (with write permissions) for this user_id."
           }
         }
       }
     },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
+    "/memory-blobs/{blobId}": {
+      "get": {
+        "tags": ["Memory Management"],
+        "summary": "Get Memory by ID",
+        "description": "Retrieve a specific memory blob by its ID. Requires the user's ID.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
         "parameters": [
           {
-            "name": "id",
+            "name": "blobId",
             "in": "path",
-            "description": "ID of plant to delete",
             "required": true,
+            "description": "The unique ID of the memory blob.",
             "schema": {
-              "type": "integer",
-              "format": "int64"
+              "type": "string"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "description": "The unique ID of the user who owns the memory blob.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
         "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
+          "200": {
+            "description": "Details of the memory blob.",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Error"
+                  "$ref": "#/components/schemas/MemoryBlob"
                 }
               }
             }
+          },
+           "400": {
+            "description": "Bad Request - Missing or invalid user_id."
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or expired JWT."
+          },
+          "403": {
+            "description": "Forbidden - Memory blob does not belong to the user or developer lacks access."
+          },
+          "404": {
+            "description": "Not Found - Memory blob with the specified ID not found."
           }
         }
-      }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
-      "post": {
-        "description": "Information about a new plant added to the store",
+      },
+      "patch": {
+        "tags": ["Memory Management"],
+        "summary": "Update Memory",
+        "description": "Update specific fields of an existing memory blob. Requires user's ID and Memory Key. Only include fields to be modified in the request body.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "blobId",
+            "in": "path",
+            "required": true,
+            "description": "The unique ID of the memory blob to update.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
-          "description": "Plant added to the store",
+          "required": true,
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NewPlant"
+                "$ref": "#/components/schemas/UpdateMemoryRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
+            "description": "Memory blob updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryBlobResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid data in request body."
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or expired JWT."
+          },
+          "403": {
+            "description": "Forbidden - Memory blob does not belong to the user or developer lacks write access."
+          },
+          "404": {
+            "description": "Not Found - Memory blob with the specified ID not found."
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Memory Management"],
+        "summary": "Delete Memory",
+        "description": "Permanently delete a specific memory blob. Requires the user's ID.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "blobId",
+            "in": "path",
+            "required": true,
+            "description": "The unique ID of the memory blob to delete.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "description": "The unique ID of the user who owns the memory blob.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Memory blob deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                   "type": "object",
+                   "properties": {
+                     "success": { "type": "boolean", "example": true }
+                   }
+                 }
+              }
+            }
+          },
+          "204": {
+             "description": "Memory blob deleted successfully (No Content)." 
+          },
+          "400": {
+            "description": "Bad Request - Missing or invalid user_id."
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or expired JWT."
+          },
+          "403": {
+            "description": "Forbidden - Memory blob does not belong to the user or developer lacks delete access."
+          },
+          "404": {
+            "description": "Not Found - Memory blob with the specified ID not found."
+          }
+        }
+      }
+    },
+    "/tags": {
+      "get": {
+        "tags": ["Memory Tag Management"],
+        "summary": "Get Memory Tags",
+        "description": "Retrieve a list of all memory tags available to the specified user. Requires the user's ID.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "description": "The unique ID of the user whose tags are being requested.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of memory tags.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TagListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Missing or invalid user_id."
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or expired JWT."
+          },
+          "403": {
+            "description": "Forbidden - Developer lacks access to this user's tags."
+          }
+        }
+      }
+    },
+    "/tags/{tagId}": {
+      "get": {
+        "tags": ["Memory Tag Management"],
+        "summary": "Get Memory Tag by ID",
+        "description": "Retrieve the details of a specific memory tag by its ID. Requires the user's ID.",
+        "security": [
+          { "bearerAuth": [] }
+        ],
+        "parameters": [
+          {
+            "name": "tagId",
+            "in": "path",
+            "required": true,
+            "description": "The unique ID of the tag.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "user_id",
+            "in": "query",
+            "required": true,
+            "description": "The unique ID of the user who owns the tag.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Details of the memory tag.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Tag"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Missing or invalid user_id."
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or expired JWT."
+          },
+          "403": {
+            "description": "Forbidden - Tag does not belong to the user or developer lacks access."
+          },
+          "404": {
+            "description": "Not Found - Tag with the specified ID not found."
           }
         }
       }
     }
   },
   "components": {
-    "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
-        "type": "object",
-        "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
-          },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
-        }
-      },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
-        "type": "object",
-        "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          }
-        }
-      }
-    },
     "securitySchemes": {
       "bearerAuth": {
         "type": "http",
-        "scheme": "bearer"
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT token obtained via `/auth/token` endpoint."
+      }
+    },
+    "schemas": {
+      "AuthTokenRequest": {
+        "type": "object",
+        "required": ["api_key"],
+        "properties": {
+          "api_key": {
+            "type": "string",
+            "description": "Your developer secret API key (mem_...)."
+          },
+          "expires_in": {
+            "type": "integer",
+            "description": "Optional requested token lifetime in seconds (server may override).",
+            "example": 3600
+          }
+        }
+      },
+      "AuthTokenResponse": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "The JWT bearer token."
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "The ISO 8601 timestamp when the token expires."
+          },
+          "token_type": {
+            "type": "string",
+            "example": "Bearer"
+          }
+        }
+      },
+      "CreateAccessRequest": {
+        "type": "object",
+        "required": ["memoryKey", "reason"],
+        "properties": {
+          "memoryKey": {
+            "type": "string",
+            "description": "The user's unique Memory Key obtained from the user directly."
+          },
+          "reason": {
+            "type": "string",
+            "description": "A brief description of why your application needs access to the user's memories. This is shown to the user.",
+            "maxLength": 255
+          }
+        }
+      },
+      "AccessRequest": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique ID of the access request."
+          },
+          "status": {
+            "type": "string",
+            "enum": ["pending", "approved", "rejected", "revoked"],
+            "description": "The current status of the access request."
+          },
+           "reason": {
+            "type": "string",
+            "description": "The reason provided when creating the request."
+          },
+          "memoryKey": {
+             "type": "string",
+             "description": "The user's memory key associated with this request."
+           },
+           "user_id": {
+             "type": "string",
+             "format": "uuid",
+             "description": "The unique ID of the user this request pertains to (available once linked)." 
+           },
+           "aiConnectorId": {
+             "type": "string",
+             "description": "The ID of the AI Connector (developer application) that made the request."
+           },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the request was created."
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the request was last updated (e.g., approved/rejected)." 
+          }
+        }
+      },
+      "AccessRequestListResponse": {
+         "type": "object",
+         "properties": {
+           "items": {
+             "type": "array",
+             "items": {
+               "$ref": "#/components/schemas/AccessRequest"
+             }
+           },
+           "total": {
+             "type": "integer",
+             "description": "Total number of access requests."
+           }
+         }
+       },
+      "AccessCredentialsResponse": {
+        "type": "object",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The unique ID of the user."
+          },
+          "memory_key": {
+            "type": "string",
+            "description": "The user's Memory Key (same as provided in the initial request)." 
+          },
+          "encryption_key": {
+            "type": "string",
+            "description": "The hexadecimal string representation of the user's symmetric encryption key. Use this to encrypt/decrypt memory content."
+          },
+          "key_version": {
+            "type": "integer",
+            "description": "The version of the encryption key."
+          }
+        }
+      },
+       "CreateMemoryRequest": {
+         "type": "object",
+         "required": ["user_id", "memoryKey", "content"],
+         "properties": {
+           "user_id": { "type": "string", "format": "uuid", "description": "User's unique ID." },
+           "memoryKey": { "type": "string", "description": "User's memory key." },
+           "content": { "type": "string", "description": "The memory content (plaintext or pre-encrypted depending on implementation)." },
+           "title": { "type": "string", "description": "Optional title for the memory." },
+           "summary": { "type": "string", "description": "Optional brief summary of the memory." },
+           "tags": { "type": "array", "items": { "type": "string" }, "description": "List of tag names (strings) to associate. New tags will be created if they don't exist." },
+           "importance": { "type": "number", "description": "Optional importance score (e.g., 1-5 or 0-1).", "format": "float", "example": 0.8 },
+           "confidence": { "type": "number", "description": "Optional confidence score (0-1).", "format": "float", "example": 0.95 },
+           "source": { "type": "string", "description": "Optional identifier for the source application/context.", "example": "my-chat-app" }
+         }
+       },
+       "UpdateMemoryRequest": {
+         "type": "object",
+         "required": ["user_id", "memoryKey"],
+         "description": "Only include fields you wish to update.",
+         "properties": {
+           "user_id": { "type": "string", "format": "uuid", "description": "User's unique ID (required for identification)." },
+           "memoryKey": { "type": "string", "description": "User's memory key (required for verification/encryption)." },
+           "content": { "type": "string", "description": "New memory content (plaintext or pre-encrypted)." },
+           "title": { "type": "string" },
+           "summary": { "type": "string" },
+           "tags": { "type": "array", "items": { "type": "string" }, "description": "Replaces existing tags entirely with this list." },
+           "importance": { "type": "number", "format": "float" },
+           "confidence": { "type": "number", "format": "float" },
+           "source": { "type": "string" }
+         }
+       },
+      "MemoryBlob": {
+        "type": "object",
+        "description": "Represents a single memory blob (content is encrypted).",
+        "properties": {
+          "id": { "type": "string" },
+          "user_id": { "type": "string", "format": "uuid" },
+          "content": { "type": "string", "description": "Encrypted memory content. Needs decryption using the user's encryption key." },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" },
+          "source": { "type": "string" },
+          "title": { "type": "string" },
+          "summary": { "type": "string" },
+          "importance": { "type": "number", "format": "float" },
+          "confidence": { "type": "number", "format": "float" },
+          "tags": { "type": "array", "items": { "type": "string" }, "description": "List of tag names associated." },
+          "tag_ids": { "type": "array", "items": { "type": "string" }, "description": "List of tag IDs associated." }
+        }
+      },
+      "MemoryBlobResponse": {
+        "type": "object",
+        "description": "Represents a memory blob as returned by Create/Update operations (content is not included).",
+        "properties": {
+          "id": { "type": "string" },
+          "user_id": { "type": "string", "format": "uuid" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" },
+          "source": { "type": "string" },
+          "title": { "type": "string" },
+          "summary": { "type": "string" },
+          "importance": { "type": "number", "format": "float" },
+          "confidence": { "type": "number", "format": "float" },
+          "tags": { "type": "array", "items": { "type": "string" } },
+          "tag_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "MemoryBlobListResponse": {
+        "type": "object",
+        "properties": {
+          "memoryBlobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemoryBlob"
+            }
+          },
+          "next_cursor": {
+            "type": ["string", "null"],
+            "description": "Cursor for fetching the next page of results, or null if this is the last page."
+          }
+        }
+      },
+      "Tag": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "name": { "type": "string" },
+          "color": { "type": "string", "format": "hexcolor", "example": "#3B82F6" },
+          "description": { "type": "string" },
+          "is_enabled": { "type": "boolean" },
+          "created_at": { "type": "string", "format": "date-time" },
+          "updated_at": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TagListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Tag"
+            }
+          }
+        }
       }
     }
   }
