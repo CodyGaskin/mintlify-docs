@@ -1,0 +1,77 @@
+---
+title: 'POST /access-requests'
+---
+
+Initiate a request for access to a specific user's memory store using their unique Memory Key. The user must approve this request via the Memoram dashboard before you can retrieve their credentials.
+
+<RequestExample>
+
+```bash Example Request
+curl -X POST https://api.memoram.app/api/v1/access-requests \\
+  -H "Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "memoryKey": "user_provided_mem_key",
+    "reason": "DemoBot would like to access your ai memories"
+  }'
+```
+
+</RequestExample>
+
+### Authorization
+
+Requires `Bearer` token authentication using your Developer JWT.
+
+### Request Body
+
+<Properties>
+  <Property name="memoryKey" type="string" required>
+    The user's unique Memory Key, obtained from the user (e.g., via OAuth flow or direct input).
+  </Property>
+  <Property name="reason" type="string" required>
+    A brief description (max 255 chars) of why your application needs access. This is shown to the user during the approval process.
+  </Property>
+</Properties>
+
+### Responses
+
+<ResponseExample>
+
+```json 201 Created: Request Pending
+{
+  "id": "req_cm8r8ny2i001mm24853tqfd62",
+  "status": "pending",
+  "reason": "DemoBot would like to access your ai memories",
+  "memoryKey": "user_provided_mem_key",
+  "user_id": null, // Will be populated once linked/approved
+  "aiConnectorId": "conn_ec8dddc9b3fa4d64b95bf2315911bf9a",
+  "createdAt": "2024-03-27T10:55:01.000Z",
+  "updatedAt": "2024-03-27T10:55:01.000Z"
+}
+```
+
+```json 400 Bad Request
+{
+  "error": "Bad Request",
+  "message": "Invalid memoryKey or reason provided.",
+  "statusCode": 400
+}
+```
+
+```json 401 Unauthorized
+{
+  "error": "Unauthorized",
+  "message": "Invalid or expired JWT.",
+  "statusCode": 401
+}
+```
+
+```json 404 Not Found
+{
+  "error": "Not Found",
+  "message": "Memory Key does not exist.",
+  "statusCode": 404
+}
+```
+
+</ResponseExample> 

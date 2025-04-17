@@ -1,0 +1,84 @@
+---
+title: 'DELETE /memory-blobs/{blobId}'
+---
+
+Permanently delete a specific memory blob. Requires the user's ID.
+
+This operation is irreversible.
+
+<RequestExample>
+
+```bash Example Request
+curl -X DELETE "https://api.memoram.app/api/v1/memory-blobs/mem_blob_id_to_delete...?user_id=USER_ID_FROM_CREDENTIALS" \\
+  -H "Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN"
+```
+
+</RequestExample>
+
+### Authorization
+
+Requires `Bearer` token authentication using your Developer JWT.
+
+### Path Parameters
+
+<Properties>
+  <Property name="blobId" type="string" required>
+    The unique ID of the memory blob to delete.
+  </Property>
+</Properties>
+
+### Query Parameters
+
+<Properties>
+  <Property name="user_id" type="string (uuid)" required>
+    The unique ID of the user who owns the memory blob.
+  </Property>
+</Properties>
+
+### Responses
+
+<ResponseExample>
+
+```json 200 OK: Success
+{
+  "success": true
+}
+```
+
+```text 204 No Content
+(Empty response body)
+```
+
+```json 400 Bad Request
+{
+  "error": "Bad Request",
+  "message": "Missing or invalid user_id.",
+  "statusCode": 400
+}
+```
+
+```json 401 Unauthorized
+{
+  "error": "Unauthorized",
+  "message": "Invalid or expired JWT.",
+  "statusCode": 401
+}
+```
+
+```json 403 Forbidden
+{
+  "error": "Forbidden",
+  "message": "Memory blob does not belong to the user or developer lacks delete access.",
+  "statusCode": 403
+}
+```
+
+```json 404 Not Found
+{
+  "error": "Not Found",
+  "message": "Memory blob with the specified ID not found.",
+  "statusCode": 404
+}
+```
+
+</ResponseExample> 

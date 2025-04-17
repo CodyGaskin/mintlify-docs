@@ -1,0 +1,111 @@
+---
+title: 'POST /memory-blobs'
+---
+
+Create a new memory blob for a user. Requires the user's ID and Memory Key obtained from an approved access request.
+
+Content sent in the `content` field should ideally be encrypted client-side using the user's `encryption_key` before sending. Alternatively, if sending plaintext, ensure the API or SDK handles server-side encryption.
+
+<RequestExample>
+
+```bash Example Request
+curl -X POST https://api.memoram.app/api/v1/memory-blobs \\
+  -H "Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "user_id": "USER_ID_FROM_CREDENTIALS",
+    "memoryKey": "USER_PROVIDED_MEMORY_KEY",
+    "content": "User prefers dark mode in applications.",
+    "title": "User prefers dark mode",
+    "summary": "Prefers dark themes.",
+    "tags": ["preferences", "ui"],
+    "importance": 0.7,
+    "confidence": 0.95,
+    "source": "your-app-name"
+  }'
+```
+
+</RequestExample>
+
+### Authorization
+
+Requires `Bearer` token authentication using your Developer JWT.
+
+### Request Body
+
+<Properties>
+  <Property name="user_id" type="string (uuid)" required>
+    User's unique ID.
+  </Property>
+  <Property name="memoryKey" type="string" required>
+    User's memory key.
+  </Property>
+  <Property name="content" type="string" required>
+    The memory content (plaintext or pre-encrypted).
+  </Property>
+  <Property name="title" type="string">
+    Optional title for the memory.
+  </Property>
+  <Property name="summary" type="string">
+    Optional brief summary of the memory.
+  </Property>
+  <Property name="tags" type="array[string]">
+    List of tag names (strings) to associate. New tags will be created if they don't exist for the user.
+  </Property>
+  <Property name="importance" type="number">
+    Optional importance score (e.g., float 0-1 or integer 1-5).
+  </Property>
+  <Property name="confidence" type="number">
+    Optional confidence score (0-1).
+  </Property>
+  <Property name="source" type="string">
+    Optional identifier for the source application/context (e.g., `my-chat-app`).
+  </Property>
+</Properties>
+
+### Responses
+
+<ResponseExample>
+
+```json 201 Created: Success
+// Note: Content is NOT returned in the response
+{
+  "id": "mem_blob_id_example...",
+  "user_id": "user_uuid_example...",
+  "title": "User prefers dark mode",
+  "summary": "Prefers dark themes.",
+  "tags": ["preferences", "ui"],
+  "tag_ids": ["tag_id_pref...", "tag_id_ui..."],
+  "importance": 0.7,
+  "confidence": 0.95,
+  "source": "your-app-name",
+  "created_at": "2024-01-01T12:00:00Z",
+  "updated_at": "2024-01-01T12:00:00Z"
+}
+```
+
+```json 400 Bad Request
+{
+  "error": "Bad Request",
+  "message": "Missing required fields (user_id, memoryKey, content) or invalid data.",
+  "statusCode": 400
+}
+```
+
+```json 401 Unauthorized
+{
+  "error": "Unauthorized",
+  "message": "Invalid or expired JWT.",
+  "statusCode": 401
+}
+```
+
+```json 403 Forbidden
+{
+  "error": "Forbidden",
+  "message": "The authenticated developer does not have approved access (with write permissions) for this user_id.",
+  "statusCode": 403
+}
+```
+
+</ResponseExample> 

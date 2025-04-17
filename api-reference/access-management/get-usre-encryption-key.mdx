@@ -1,0 +1,70 @@
+---
+title: 'GET /access-requests/{requestId}/credentials'
+---
+
+Retrieve the user's Memory Key and the necessary symmetric Encryption Key required to encrypt/decrypt their memory blob content. 
+
+**Important:** This endpoint ONLY works for access requests that have an `approved` status. Calling this for requests with other statuses (`pending`, `rejected`, `revoked`) will result in a `403 Forbidden` error.
+
+<RequestExample>
+
+```bash Example Request
+# Replace {requestId} with the ID of an APPROVED access request
+curl -X GET https://api.memoram.app/api/v1/access-requests/req_cm8r8ny2i001mm24853tqfd62/credentials \\
+  -H "Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN"
+```
+
+</RequestExample>
+
+### Authorization
+
+Requires `Bearer` token authentication using your Developer JWT.
+
+### Path Parameters
+
+<Properties>
+  <Property name="requestId" type="string" required>
+    The unique ID of an **approved** access request.
+  </Property>
+</Properties>
+
+### Responses
+
+<ResponseExample>
+
+```json 200 OK: Success
+{
+  "user_id": "user_bf7c87d302044f86be466f9f0c52d61f",
+  "memory_key": "user_provided_mem_key", 
+  "encryption_key": "a1b2c3d4e5f6...hex_encoded_encryption_key...7a8b9c0d", 
+  "key_version": 1
+}
+```
+
+```json 401 Unauthorized
+{
+  "error": "Unauthorized",
+  "message": "Invalid or expired JWT.",
+  "statusCode": 401
+}
+```
+
+```json 403 Forbidden
+{
+  "error": "Forbidden",
+  "message": "Access request is not approved or does not belong to the authenticated developer.",
+  "statusCode": 403
+}
+```
+
+```json 404 Not Found
+{
+  "error": "Not Found",
+  "message": "Access request with the specified ID not found.",
+  "statusCode": 404
+}
+```
+
+</ResponseExample>
+
+Store the `encryption_key` securely. It is needed to encrypt content before sending it via `POST /memory-blobs` or `PATCH /memory-blobs/{blobId}` and to decrypt content received from `GET /memory-blobs` endpoints. 

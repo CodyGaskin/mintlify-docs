@@ -35,7 +35,14 @@
       },
       {
         "tab": "API Reference",
-        "groups": []
+        "groups": [
+          {
+            "group": "API Endpoints",
+            "pages": [
+              "api-reference"
+            ]
+          }
+        ]
       }
     ],
     "global": {
