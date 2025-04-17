@@ -1,0 +1,180 @@
+---
+title: Memory Management
+---
+
+This section details how to interact with user memory blobs using the Memoram API. Remember to include the required `Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN` header and the correct `user_id` query parameter where necessary.
+
+## Memory Blob Endpoints
+
+### Retrieve Memory Blobs
+
+Retrieve a list of memory blobs for a specific user, with optional filtering and pagination.
+
+```bash
+GET /memory-blobs
+```
+
+**Query parameters:**
+
+-   `user_id` (string, **required**): The unique ID of the user whose memories are being requested.
+-   `tags` (string, optional): Comma-separated list of tag names to filter by.
+-   `searchQuery` (string, optional): Search term to filter memories (searches title, summary, content).
+-   `importance` (number, optional): Minimum importance score (0.0-1.0) to filter by.
+-   `limit` (integer, optional): Maximum number of results per page (default: 10).
+-   `cursor` (string, optional): Pagination cursor from a previous response.
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.memoram.app/api/v1/memory-blobs?user_id=USER_ID_HERE&tags=work,important&limit=20" \
+  -H "Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN"
+```
+
+**Example Response (`200 OK`):**
+
+```json
+{
+  "memoryBlobs": [
+    {
+      "id": "mem_123456789",
+      "user_id": "USER_ID_HERE",
+      "title": "User likes hiking",
+      "summary": "The user mentioned they enjoy hiking in mountainous regions.",
+      "content": "ENCRYPTED_CONTENT...", // Needs decryption
+      "tags": ["preferences", "hobbies", "outdoor activities"],
+      "tag_ids": ["tag_123", "tag_456", "tag_789"],
+      "importance": 0.8,
+      "confidence": 0.9,
+      "source": "conversation",
+      "created_at": "2023-04-01T12:00:00Z",
+      "updated_at": "2023-04-01T12:00:00Z"
+    }
+    // ... more blobs
+  ],
+  "next_cursor": "CURSOR_STRING_OR_NULL"
+}
+```
+
+### Retrieve Single Memory Blob
+
+Retrieve a specific memory blob by its ID.
+
+```bash
+GET /memory-blobs/{blobId}
+```
+
+**Path parameters:**
+
+-   `blobId` (string, **required**): The unique ID of the memory blob.
+
+**Query parameters:**
+
+-   `user_id` (string, **required**): The unique ID of the user who owns the memory blob.
+
+**Example Request:**
+
+```bash
+curl -X GET "https://api.memoram.app/api/v1/memory-blobs/mem_123456789?user_id=USER_ID_HERE" \
+  -H "Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN"
+```
+
+**Example Response (`200 OK`):** A single MemoryBlob object (see schema above, content needs decryption).
+
+### Create Memory Blob
+
+Create a new memory blob for a user. You must have obtained the user's `user_id` and `memoryKey` via an approved access request.
+
+```bash
+POST /memory-blobs
+```
+
+**Request body:** (`application/json`)
+
+-   Requires `user_id`, `memoryKey`, `content`.
+-   Optional fields: `title`, `summary`, `tags` (array of strings), `importance` (float), `confidence` (float), `source` (string).
+
+**Example Request:**
+
+```bash
+curl -X POST https://api.memoram.app/api/v1/memory-blobs \
+  -H "Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "USER_ID_HERE",
+    "memoryKey": "USER_MEMORY_KEY_HERE",
+    "content": "User prefers dark mode in applications.",
+    "title": "User prefers dark mode",
+    "summary": "Prefers dark themes.",
+    "tags": ["preferences", "ui"],
+    "importance": 0.7,
+    "confidence": 0.95,
+    "source": "your-app-name"
+  }'
+```
+
+**Example Response (`201 Created`):** The created MemoryBlobResponse object (content is not returned).
+
+### Update Memory Blob
+
+Update specific fields of an existing memory blob. Requires `user_id` and `memoryKey` in the body for verification/encryption purposes.
+
+```bash
+PATCH /memory-blobs/{blobId}
+```
+
+**Path parameters:**
+
+-   `blobId` (string, **required**): The unique ID of the memory blob to update.
+
+**Request body:** (`application/json`)
+
+-   Requires `user_id`, `memoryKey`.
+-   Include only the fields you want to modify (e.g., `title`, `summary`, `content`, `tags`, `importance`, `confidence`).
+-   Sending a `tags` array replaces all existing tags on the blob.
+
+**Example Request:**
+
+```bash
+curl -X PATCH https://api.memoram.app/api/v1/memory-blobs/mem_123456789 \
+  -H "Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "user_id": "USER_ID_HERE",
+    "memoryKey": "USER_MEMORY_KEY_HERE",
+    "summary": "User strongly prefers dark themes.",
+    "importance": 0.9
+  }'
+```
+
+**Example Response (`200 OK`):** The updated MemoryBlobResponse object (content is not returned).
+
+### Delete Memory Blob
+
+Permanently delete a specific memory blob.
+
+```bash
+DELETE /memory-blobs/{blobId}
+```
+
+**Path parameters:**
+
+-   `blobId` (string, **required**): The unique ID of the memory blob to delete.
+
+**Query parameters:**
+
+-   `user_id` (string, **required**): The unique ID of the user who owns the memory blob.
+
+**Example Request:**
+
+```bash
+curl -X DELETE "https://api.memoram.app/api/v1/memory-blobs/mem_123456789?user_id=USER_ID_HERE" \
+  -H "Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN"
+```
+
+**Example Response (`200 OK` or `204 No Content`):**
+
+```json
+{
+  "success": true
+}
+```

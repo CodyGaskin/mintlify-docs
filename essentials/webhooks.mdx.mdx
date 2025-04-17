@@ -1,0 +1,79 @@
+---
+title: Webhooks Integration
+---
+
+Webhooks allow your application to receive real-time notifications when events occur in Memoram, such as when memories are created, updated, or deleted.
+
+This eliminates the need for polling the API for updates and allows for a more reactive user experience.
+
+## Auto-Registration
+
+When you create a new AI connector project in the Memoram dashboard, webhook subscriptions are automatically created for you (initially inactive). You can configure the target URL and activate these webhooks through the developer dashboard.
+
+## Benefits of Using Webhooks
+
+-   **Real-time Updates**: Receive notifications immediately when events occur.
+-   **Reduced API Calls**: Avoid constant polling.
+-   **Better User Experience**: React to changes instantly.
+
+## Implementation Steps
+
+1.  **Configure Webhook URL**: Set up an endpoint in your application (a publicly accessible URL) to receive HTTP POST requests from Memoram.
+2.  **Activate Webhooks**: Enable the desired event types and provide your endpoint URL in the Memoram Developer Dashboard for your registered application.
+3.  **Implement Signature Verification**: Verify webhook signatures to ensure the requests genuinely originate from Memoram and haven't been tampered with.
+4.  **Process Events**: Handle the incoming webhook event payloads in your application.
+5.  **Respond Quickly**: Your endpoint should respond with a `2xx` status code (e.g., `200 OK`) promptly to acknowledge receipt. Avoid lengthy processing in the webhook handler itself; process asynchronously if needed.
+
+## Supported Event Types
+
+(Verify these event names are correct)
+
+-   `memory.created`: Triggered when a new memory is created.
+-   `memory.updated`: Triggered when a memory is updated.
+-   `memory.deleted`: Triggered when a memory is deleted.
+-   `tag.created`: Triggered when a new tag is created.
+-   `tag.updated`: Triggered when a tag is updated.
+-   `access_request.approved`: Triggered when a user approves an access request.
+-   `access_request.rejected`: Triggered when a user rejects an access request.
+-   `access_request.revoked`: Triggered when user access is revoked.
+
+## Webhook Payload Example
+
+The payload sent to your webhook URL will look similar to this:
+
+```json
+{
+  "event": "memory.created",
+  "timestamp": "2023-05-15T10:15:00Z",
+  "data": {
+    // Payload varies depending on the event type
+    "id": "mem_123456789", 
+    "user_id": "user-uuid-associated-with-event",
+    "title": "New memory title",
+    "summary": "Brief summary of the memory",
+    "tags": ["tag1", "tag2"],
+    "importance": 0.8
+    // Other relevant fields based on the event
+  }
+}
+```
+
+## Webhook Signature Verification
+
+All webhook requests sent by Memoram include a signature header to ensure authenticity and integrity:
+
+```
+Memoram-Signature: t=1683115200,v1=5257a869e7ecebeda32affa62cdca3fa51cad7e77a0e56ff536d0ce8e108d8bd
+```
+
+To verify the signature:
+
+1.  **Extract Timestamp and Signature:** Parse the `Memoram-Signature` header. Separate the timestamp (`t=...`) and the signature (`v1=...`). The `v1` indicates the signature scheme (HMAC-SHA256).
+2.  **Prepare the Signed Payload String:** Concatenate the timestamp (as a string), a dot (`.`), and the raw HTTP request body.
+    ```
+    signed_payload = timestamp + "." + request_body
+    ```
+3.  **Compute the Expected Signature:** Calculate the HMAC (Hash-based Message Authentication Code) using the SHA-256 hash function. Use your **Webhook Signing Secret** (provided in the Memoram Developer Dashboard) as the key and the `signed_payload` string as the message.
+4.  **Compare Signatures:** Compare the signature you computed (hex-encoded) with the `v1` signature extracted from the header. If they match, the webhook is valid. Implement timing attack protection by using a constant-time comparison function.
+
+**Important:** Reject any webhook request that fails signature verification.

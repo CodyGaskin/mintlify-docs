@@ -1,0 +1,28 @@
+---
+title: Best Practices
+---
+
+Follow these best practices to ensure a robust, secure, and efficient integration with Memoram.
+
+## Memory Management
+
+1.  **Be Selective**: Only store information that is truly valuable for future interactions and personalization. Avoid storing trivial or redundant data.
+2.  **Summarize Effectively**: Create concise, meaningful summaries. Summaries are often used for quick previews or relevance scoring, so make them informative.
+3.  **Use Importance Wisely**: Reserve high importance scores (e.g., > 0.8 or 4-5 depending on the scale) for critical user information like core preferences, constraints, or facts.
+4.  **Tag Consistently**: Develop and apply a consistent tagging strategy. This improves organization and makes retrieval more effective.
+
+## Security
+
+1.  **Secure Storage**: Store developer API keys, user access tokens, refresh tokens, memory keys, and encryption keys securely. Never expose them client-side or commit them to version control.
+2.  **Minimal Scope (OAuth)**: When initiating the OAuth flow, request only the permissions (scopes) your application absolutely needs.
+3.  **Token Refresh**: Implement proper logic to use refresh tokens to obtain new access tokens before the current ones expire. Handle token expiry errors gracefully.
+4.  **Data Minimization**: Only collect and store user information necessary for your application's functionality. Avoid storing sensitive data unnecessarily.
+5.  **Webhook Secret**: Keep your Webhook Signing Secret confidential.
+6.  **Signature Verification**: Always verify webhook signatures before processing the payload.
+
+## Performance
+
+1.  **Efficient Retrieval**: Use specific tags and search queries (`/memory-blobs` GET parameters) to retrieve only the most relevant memories, rather than fetching large datasets.
+2.  **Pagination**: Use the `limit` and `cursor` parameters when retrieving lists (memories, tags, access requests) to handle potentially large result sets efficiently.
+3.  **Caching**: Consider caching frequently accessed, less volatile data (like tags or user preferences stored in memories) where appropriate, respecting potential updates.
+4.  **Asynchronous Processing**: For operations that might take time (e.g., complex processing after receiving a webhook), handle them asynchronously to ensure your webhook endpoint responds quickly.
