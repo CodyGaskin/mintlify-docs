@@ -37,9 +37,30 @@
         "tab": "API Reference",
         "groups": [
           {
-            "group": "API Endpoints",
+            "group": "Access Management",
             "pages": [
-              "api-reference"
+              "api-reference/access-management/create-jwt-token",
+              "api-reference/access-management/create-access-request",
+              "api-reference/access-management/get-access-requests",
+              "api-reference/access-management/get-access-request-by-id",
+              "api-reference/access-management/get-user-encryption-key"
+            ]
+          },
+          {
+            "group": "Memory Management",
+            "pages": [
+              "api-reference/memory-management/get-memories",
+              "api-reference/memory-management/create-memory",
+              "api-reference/memory-management/get-memory-by-id",
+              "api-reference/memory-management/update-memory",
+              "api-reference/memory-management/delete-memory"
+            ]
+          },
+          {
+            "group": "Memory Tag Management",
+            "pages": [
+              "api-reference/tag-management/get-tags",
+              "api-reference/tag-management/get-tag-by-id"
             ]
           }
         ]
