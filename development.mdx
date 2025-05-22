@@ -1,46 +1,34 @@
 ---
-title: Testing Your Integration
+title: "Testing Your Integration"
 ---
 
 Before launching your integration, it's crucial to test it thoroughly.
-
-## Sandbox Environment
-
-Memoram provides a dedicated sandbox environment for development and testing. Use the following base URL for all API calls during testing:
-
-```
-https://sandbox-api.memoram.app/api/v1 
-```
-
-Test credentials (API keys, etc.) specifically for the sandbox environment should be available in the [Memoram Developer Portal](https://developers.memoram.app).
 
 ## Integration Checklist
 
 Use this checklist to ensure your integration is robust:
 
-- [ ] Developer JWT Token retrieval (`/auth/token`) works correctly.
-- [ ] User OAuth 2.0 flow redirects correctly and handles the callback.
-- [ ] Authorization code exchange successfully retrieves user `access_token` and `memory_key`.
-- [ ] Access request creation (`/access-requests`) works using the `memory_key`.
-- [ ] Polling or checking access request status (`/access-requests/{id}`) functions correctly.
-- [ ] Credential retrieval (`/access-requests/{id}/credentials`) works for **approved** requests.
-- [ ] Secure storage of API keys and user credentials (encryption keys, refresh tokens) is implemented.
-- [ ] Content encryption/decryption using the retrieved `encryption_key` works correctly.
-- [ ] Memory blob creation (`/memory-blobs POST`) functions as expected (using correct `user_id`, `memoryKey`, and handling content encryption).
-- [ ] Memory blob retrieval (`/memory-blobs GET`, `/memory-blobs/{id} GET`) works and content can be decrypted.
-- [ ] Memory blob updates (`/memory-blobs/{id} PATCH`) modify blobs correctly.
-- [ ] Memory blob deletion (`/memory-blobs/{id} DELETE`) works.
-- [ ] Tag retrieval (`/tags GET`, `/tags/{id} GET`) functions correctly.
-- [ ] Appropriate error handling (e.g., for 4xx/5xx responses, network issues, invalid keys) is implemented for all API calls.
-- [ ] (If applicable) Token refresh logic for user `access_token` is implemented.
-- [ ] (If applicable) Webhook endpoints receive and correctly verify event payloads.
+- Developer JWT Token retrieval (`/auth/token`) works correctly.
+- Authorization code exchange successfully retrieves user `access_token` and `memory_key`.
+- Access request creation (`/access-requests`) works using the `memory_key`.
+- Polling or checking access request status (`/access-requests/{id}`) functions correctly.
+- Credential retrieval (`/access-requests/{id}/credentials`) works for **approved** requests.
+- Secure storage of API keys and user credentials (encryption keys, refresh tokens) is implemented.
+- Content encryption/decryption using the retrieved `encryption_key` works correctly.
+- Memory blob creation (`/memory-blobs POST`) functions as expected (using correct `user_id`, `memoryKey`, and handling content encryption).
+- Memory blob retrieval (`/memory-blobs GET`, `/memory-blobs/{id} GET`) works and content can be decrypted.
+- Memory blob updates (`/memory-blobs/{id} PATCH`) modify blobs correctly.
+- Memory blob deletion (`/memory-blobs/{id} DELETE`) works.
+- Tag retrieval (`/tags GET`, `/tags/{id} GET`) functions correctly.
+- Appropriate error handling (e.g., for 4xx/5xx responses, network issues, invalid keys) is implemented for all API calls.
+- (If applicable) Token refresh logic for user `access_token` is implemented.
+- (If applicable) Webhook endpoints receive and correctly verify event payloads.
 
 ## Validation Process
 
 Before submitting your integration for potential inclusion or partnership:
 
-1.  Complete the integration checklist above.
-2.  Test with various user scenarios (e.g., new user, existing user, denied access request, revoked access).
-3.  Ensure secure handling of all tokens and keys according to best practices.
-4.  Prepare documentation or a description of how your tool uses Memoram.
-
+1. Complete the integration checklist above.
+2. Test with various user scenarios (e.g., new user, existing user, denied access request, revoked access).
+3. Ensure secure handling of all tokens and keys according to best practices.
+4. Prepare documentation or a description of how your tool uses Memoram.
