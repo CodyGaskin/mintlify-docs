@@ -1,19 +1,11 @@
 ---
-title: 'GET /memory-blobs'
+title: 'Get Memories'
+openapi: 'GET /memory-blobs'
 ---
 
 Retrieve a list of memory blobs for a specific user. Requires the user's ID obtained from an approved access request.
 
 The `content` field in the response blobs will be encrypted and needs to be decrypted using the user's `encryption_key`.
-
-<RequestExample>
-
-```bash Example Request (with filters)
-curl -X GET "https://api.memoram.app/api/v1/memory-blobs?user_id=USER_ID_HERE&limit=10&tags=project-beta,important" \\
-  -H "Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN"
-```
-
-</RequestExample>
 
 ### Authorization
 
@@ -21,76 +13,4 @@ Requires `Bearer` token authentication using your Developer JWT.
 
 ### Query Parameters
 
-<Properties>
-  <Property name="user_id" type="string (uuid)" required>
-    The unique ID of the user whose memories are being requested.
-  </Property>
-  <Property name="limit" type="integer">
-    Maximum number of memory blobs to return. Defaults to 10.
-  </Property>
-  <Property name="cursor" type="string">
-    Cursor for pagination, obtained from the `next_cursor` field in a previous response.
-  </Property>
-  <Property name="tags" type="string">
-    Comma-separated list of tag names to filter by (e.g., "work,urgent").
-  </Property>
-  <Property name="searchQuery" type="string">
-    Search term to filter memories. This searches across the `title`, `summary`, and decrypted `content` fields.
-  </Property>
-  <Property name="importance" type="number">
-     Minimum importance score (0.0-1.0) to filter by.
-  </Property>
-</Properties>
-
-### Responses
-
-<ResponseExample>
-
-```json 200 OK: Success
-{
-  "memoryBlobs": [
-    {
-      "id": "mem_blob_id_1...",
-      "user_id": "user_uuid_example...",
-      "content": "ENCRYPTED_CONTENT_EXAMPLE...", // Needs decryption
-      "created_at": "2025-03-27T10:20:11.858Z",
-      "updated_at": "2025-03-31T16:47:41.084Z",
-      "source": "your-app-name",
-      "title": "Example Memory Title 1",
-      "summary": "Summary 1",
-      "importance": 4,
-      "confidence": 1,
-      "tags": ["work"],
-      "tag_ids": ["tag_id_work..."]
-    },
-    // ... more blobs
-  ],
-  "next_cursor": "cursor_string_for_next_page..." // or null
-}
-```
-
-```json 400 Bad Request
-{
-  "error": "Bad Request",
-  "message": "Missing or invalid user_id.",
-  "statusCode": 400
-}
-```
-
-```json 401 Unauthorized
-{
-  "error": "Unauthorized",
-  "message": "Invalid or expired JWT.",
-  "statusCode": 401
-}
-```
-
-```json 403 Forbidden
-{
-  "error": "Forbidden",
-  "message": "The authenticated developer does not have approved access for this user_id.",
-  "statusCode": 403
-}
-```
-
-</ResponseExample> 
+### Responses 

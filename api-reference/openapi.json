@@ -819,7 +819,8 @@
             }
           },
           "next_cursor": {
-            "type": ["string", "null"],
+            "type": "string",
+            "nullable": true,
             "description": "Cursor for fetching the next page of results, or null if this is the last page."
           }
         }

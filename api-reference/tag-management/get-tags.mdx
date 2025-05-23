@@ -1,17 +1,9 @@
 ---
-title: 'GET /tags'
+title: 'Get Memory Tags'
+openapi: 'GET /tags'
 ---
 
 Retrieve a list of all memory tags available to the specified user. Requires the user's ID.
-
-<RequestExample>
-
-```bash Example Request
-curl -X GET "https://api.memoram.app/api/v1/tags?user_id=USER_ID_FROM_CREDENTIALS" \\
-  -H "Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN"
-```
-
-</RequestExample>
 
 ### Authorization
 
@@ -19,64 +11,4 @@ Requires `Bearer` token authentication using your Developer JWT.
 
 ### Query Parameters
 
-<Properties>
-  <Property name="user_id" type="string (uuid)" required>
-    The unique ID of the user whose tags are being requested.
-  </Property>
-</Properties>
-
-### Responses
-
-<ResponseExample>
-
-```json 200 OK: Success
-{
-  "items": [
-    {
-      "id": "tag_id_1...", 
-      "name": "personal", 
-      "color": "#3B82F6", 
-      "description": "Personal memories", 
-      "is_enabled": true, 
-      "created_at": "2024-01-01T10:00:00Z", 
-      "updated_at": "2024-01-01T10:00:00Z"
-    },
-    {
-      "id": "tag_id_2...", 
-      "name": "work", 
-      "color": "#10B981", 
-      "description": "Work-related memories", 
-      "is_enabled": true, 
-      "created_at": "2024-01-02T11:00:00Z", 
-      "updated_at": "2024-01-02T11:00:00Z"
-    },
-    // ... other tags for the user
-  ]
-}
-```
-
-```json 400 Bad Request
-{
-  "error": "Bad Request",
-  "message": "Missing or invalid user_id.",
-  "statusCode": 400
-}
-```
-
-```json 401 Unauthorized
-{
-  "error": "Unauthorized",
-  "message": "Invalid or expired JWT.",
-  "statusCode": 401
-}
-```
-
-```json 403 Forbidden
-{
-  "error": "Forbidden",
-  "message": "Developer lacks access to this user's tags.",
-  "statusCode": 403
-}
-```
-
-</ResponseExample> 
+### Responses 

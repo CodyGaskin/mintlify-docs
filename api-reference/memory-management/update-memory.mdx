@@ -1,28 +1,11 @@
 ---
-title: 'PATCH /memory-blobs/{blobId}'
+title: 'Update Memory'
+openapi: 'PATCH /memory-blobs/{blobId}'
 ---
 
 Update specific fields of an existing memory blob. Requires the user's ID and Memory Key for verification and potential re-encryption.
 
 Only include fields in the request body that you wish to modify. Sending a `tags` array replaces the existing tags entirely.
-
-<RequestExample>
-
-```bash Example Request
-curl -X PATCH https://api.memoram.app/api/v1/memory-blobs/mem_blob_id_example... \\
-  -H "Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN" \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "user_id": "USER_ID_FROM_CREDENTIALS",
-    "memoryKey": "USER_PROVIDED_MEMORY_KEY",
-    "title": "Updated Memory Title",
-    "summary": "Updated summary.",
-    "tags": ["work", "updated"],
-    "importance": 5
-   }'
-```
-
-</RequestExample>
 
 ### Authorization
 
@@ -30,95 +13,6 @@ Requires `Bearer` token authentication using your Developer JWT.
 
 ### Path Parameters
 
-<Properties>
-  <Property name="blobId" type="string" required>
-    The unique ID of the memory blob to update.
-  </Property>
-</Properties>
-
 ### Request Body
 
-<Properties>
-  <Property name="user_id" type="string (uuid)" required>
-    User's unique ID (required for identification).
-  </Property>
-  <Property name="memoryKey" type="string" required>
-    User's memory key (required for verification/encryption).
-  </Property>
-  <Property name="content" type="string">
-    New memory content (plaintext or pre-encrypted).
-  </Property>
-  <Property name="title" type="string">
-    New title for the memory.
-  </Property>
-  <Property name="summary" type="string">
-    New summary for the memory.
-  </Property>
-  <Property name="tags" type="array[string]">
-    Replaces existing tags entirely with this list.
-  </Property>
-  <Property name="importance" type="number">
-    New importance score.
-  </Property>
-  <Property name="confidence" type="number">
-    New confidence score.
-  </Property>
-  <Property name="source" type="string">
-    Updated source identifier.
-  </Property>
-</Properties>
-
-### Responses
-
-<ResponseExample>
-
-```json 200 OK: Success
-// Note: Content is NOT returned in the response
-{
-  "id": "mem_blob_id_example...",
-  "user_id": "user_uuid_example...",
-  "title": "Updated Memory Title",
-  "summary": "Updated summary.",
-  "tags": ["work", "updated"],
-  "tag_ids": ["tag_id_work...", "tag_id_updated..."],
-  "importance": 5,
-  "confidence": 1, // Example if confidence wasn't updated
-  "source": "your-app-name", // Example if source wasn't updated
-  "created_at": "2025-03-27T10:20:11.858Z",
-  "updated_at": "2025-04-17T18:30:00.000Z" // Updated timestamp
-}
-```
-
-```json 400 Bad Request
-{
-  "error": "Bad Request",
-  "message": "Invalid data in request body (e.g., missing user_id/memoryKey).",
-  "statusCode": 400
-}
-```
-
-```json 401 Unauthorized
-{
-  "error": "Unauthorized",
-  "message": "Invalid or expired JWT.",
-  "statusCode": 401
-}
-```
-
-```json 403 Forbidden
-{
-  "error": "Forbidden",
-  "message": "Memory blob does not belong to the user or developer lacks write access.",
-  "statusCode": 403
-}
-```
-
-```json 404 Not Found
-{
-  "error": "Not Found",
-  "message": "Memory blob with the specified ID not found.",
-  "statusCode": 404
-}
-```
-
-</ResponseExample> 
+### Responses 

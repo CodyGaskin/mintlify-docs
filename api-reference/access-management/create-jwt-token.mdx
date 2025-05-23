@@ -1,59 +1,10 @@
 ---
-title: 'POST /auth/token'
+title: 'Create JWT Token'
+openapi: 'POST /auth/token'
 ---
 
 Exchange a developer API key for a short-lived JWT bearer token required for subsequent API calls.
 
-<RequestExample>
-
-```bash Example Request
-curl -X POST https://api.memoram.app/api/v1/auth/token \\
-  -H "Content-Type: application/json" \\
-  -d '{
-    "api_key": "mem_71c8d4fd816f195801803cd4c801735dfbafaaba72a88eea",
-    "expires_in": 3600
-  }'
-```
-
-</RequestExample>
-
 ### Request Body
 
-<Properties>
-  <Property name="api_key" type="string" required>
-    Your developer secret API key (starting with `mem_...`). Find this in the [Developer Portal](https://developers.memoram.app).
-  </Property>
-  <Property name="expires_in" type="integer">
-    Optional requested token lifetime in seconds. The server may override this value. Defaults to 3600 (1 hour).
-  </Property>
-</Properties>
-
-### Responses
-
-<ResponseExample>
-
-```json 200 OK: Success
-{
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "expires_at": "2024-01-01T13:00:00Z",
-  "token_type": "Bearer"
-}
-```
-
-```json 400 Bad Request
-{
-  "error": "Bad Request",
-  "message": "Missing or invalid api_key.",
-  "statusCode": 400
-}
-```
-
-```json 401 Unauthorized
-{
-  "error": "Unauthorized",
-  "message": "Invalid API key.",
-  "statusCode": 401
-}
-```
-
-</ResponseExample> 
+### Responses 

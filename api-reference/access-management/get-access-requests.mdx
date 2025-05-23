@@ -1,51 +1,12 @@
 ---
-title: 'GET /access-requests'
+title: 'Get Access Requests'
+openapi: 'GET /access-requests'
 ---
 
 Retrieve a list of all access requests initiated by the authenticated developer account.
-
-<RequestExample>
-
-```bash Example Request
-curl -X GET https://api.memoram.app/api/v1/access-requests \\
-  -H "Authorization: Bearer YOUR_DEVELOPER_JWT_TOKEN"
-```
-
-</RequestExample>
 
 ### Authorization
 
 Requires `Bearer` token authentication using your Developer JWT.
 
 ### Responses
-
-<ResponseExample>
-
-```json 200 OK: Success
-{
-  "items": [
-    {
-      "id": "req_cm8r8ny2i001mm24853tqfd62",
-      "status": "approved", // Can be "pending", "approved", "rejected", "revoked"
-      "reason": "DemoBot would like to access your ai memories",
-      "memoryKey": "user_provided_mem_key", 
-      "user_id": "user_bf7c87d302044f86be466f9f0c52d61f", 
-      "aiConnectorId": "conn_ec8dddc9b3fa4d64b95bf2315911bf9a",
-      "createdAt": "2024-03-27T10:55:01.000Z",
-      "updatedAt": "2024-03-27T11:05:15.000Z" // Timestamp of status change
-    },
-    // ... other access requests
-  ],
-  "total": 1 // Total number of requests for this developer
-}
-```
-
-```json 401 Unauthorized
-{
-  "error": "Unauthorized",
-  "message": "Invalid or expired JWT.",
-  "statusCode": 401
-}
-```
-
-</ResponseExample> 
