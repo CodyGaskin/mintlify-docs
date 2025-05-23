@@ -1,6 +1,5 @@
 ---
-title: 'Get Access Request by ID'
-openapi: 'GET /access-requests/{requestId}'
+title: "GET /access-requests/{requestId}"
 ---
 
 Retrieve the details and status of a specific access request using its unique ID.
@@ -11,4 +10,54 @@ Requires `Bearer` token authentication using your Developer JWT.
 
 ### Path Parameters
 
-### Responses 
+<Properties>
+  <Property name="requestId" type="string" required>
+    The unique ID of the access request (e.g., `req_cm8r8ny2i001mm24853tqfd62`).
+  </Property>
+</Properties>
+
+### Responses
+
+<ResponseExample>
+
+```json 200 OK: Success
+{
+  "id": "req_cm8r8ny2i001mm24853tqfd62",
+  "status": "approved", // Can be "pending", "approved", "rejected", "revoked"
+  "reason": "DemoBot would like to access your ai memories",
+  "memoryKey": "user_provided_mem_key", 
+  "user_id": "user_bf7c87d302044f86be466f9f0c52d61f", 
+  "aiConnectorId": "conn_ec8dddc9b3fa4d64b95bf2315911bf9a",
+  "createdAt": "2024-03-27T10:55:01.000Z",
+  "updatedAt": "2024-03-27T11:05:15.000Z"
+}
+```
+
+
+```json 401 Unauthorized
+{
+  "error": "Unauthorized",
+  "message": "Invalid or expired JWT.",
+  "statusCode": 401
+}
+```
+
+
+```json 403 Forbidden
+{
+  "error": "Forbidden",
+  "message": "Access request does not belong to the authenticated developer.",
+  "statusCode": 403
+}
+```
+
+
+```json 404 Not Found
+{
+  "error": "Not Found",
+  "message": "Access request with the specified ID not found.",
+  "statusCode": 404
+}
+```
+
+</ResponseExample>
